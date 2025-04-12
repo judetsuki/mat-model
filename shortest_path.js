@@ -1,23 +1,18 @@
-// Import adjacency matrix from index.js
-const { adjacencyMatrix } = require('./index.js');
+const { distanceMatrix, nodeNames } = require('./index.js');
 
-// Floyd-Warshall algorithm implementation
 function floydWarshall(matrix) {
   const n = matrix.length;
-  const dist = Array.from({ length: n }, () => Array(n).fill(Infinity));
+  const dist = matrix.map(row => [...row]);
   const next = Array.from({ length: n }, () => Array(n).fill(null));
 
-  // Initialize distance and next matrices
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
-      dist[i][j] = matrix[i][j];
-      if (matrix[i][j] !== Infinity && i !== j) {
+      if (i !== j && matrix[i][j] !== Infinity) {
         next[i][j] = j;
       }
     }
   }
 
-  // Main algorithm
   for (let k = 0; k < n; k++) {
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
@@ -32,7 +27,6 @@ function floydWarshall(matrix) {
   return { dist, next };
 }
 
-// Path reconstruction
 function getPath(next, start, end) {
   if (next[start][end] === null) return [];
   const path = [start];
@@ -43,12 +37,19 @@ function getPath(next, start, end) {
   return path;
 }
 
-// Calculate path from A (0) to G (13)
-const { dist, next } = floydWarshall(adjacencyMatrix.slice(1)); // Skip header row
-const path = getPath(next, 0, 13);
-const pathNodes = path.map(i => adjacencyMatrix[0][i]);
+const nodeIndex = nodeNames.reduce((acc, name, index) => {
+  acc[name] = index;
+  return acc;
+}, {});
 
-console.log('Shortest distance from A to G:', dist[0][13]);
+const { dist, next } = floydWarshall(distanceMatrix);
+const start = nodeIndex['A'];
+const end = nodeIndex['G'];
+const path = getPath(next, start, end);
+const pathNodes = path.map(i => nodeNames[i]);
+
+console.log('Distance Matrix:');
+console.log(distanceMatrix.map(row => row.map(x => x === Infinity ? '∞' : x).join('\t')).join('\n'));
+
+console.log('\nShortest distance from A to G:', dist[start][end]);
 console.log('Path:', pathNodes.join(' -> '));
-
-module.exports = { floydWarshall, getPath };
